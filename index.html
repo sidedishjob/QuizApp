@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>問題集回答アプリ</title>
+	<link rel="stylesheet" href="style.css">
+	<link rel="icon" href="favicon.ico">
+</head>
+<body>
+
+	<div class="container">
+		<div>
+
+			<h1>問題集回答アプリ</h1>
+			
+			<div id="modeArea">
+				<div role="tablist" class="category-list" tabindex="0">
+					<button class="open-dialog btn-category-tab btn-category-tab-add" type="button" data-state="closed" data-target="#dialog1">+</button>
+				</div>
+				<label class="toggleButton tooltip">
+					<input type="checkbox" class="toggleButton-checkbox" name="toggleButton">
+					<span class="tooltiptext">モード切替（OFF：問題登録／ON：回答）</span>
+				</label>
+			</div>
+			<div id="content-container">
+				<div id="content-template" class="content-item">
+					<div class="category-area">
+						<h3 class="category-title">カテゴリータイトル</h3>
+						<!-- 採点結果 -->
+						<div>
+							<b><span class="scoring-results-num"></span></b>
+							<span class="scoring-results"></span>
+							<span class="results-rate"></span>
+							<b><span class="results-rate-per"></span></b>
+						</div>
+						<button class="btn btn-detail open-dialog" data-target="#dialog2">編集</button>
+					</div>
+					<div id="question-area-container">
+						<div id="question-template" class="question-template-area mt-4">
+							<div class="question-title">
+								<label for="correct">問題 1</label>
+								<span class="results-mark"></span> <!-- 結果表示用のspan -->
+								<button class="btn-delete btn-delete-init">
+									<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+									<path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+									<path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+								  </svg>
+								</button>
+							</div>
+							<input type="text" id="correct" name="correct" class="dialog-item dialog-input dialog-correct mt-4" placeholder="正解を入力">
+							<input type="text" id="answer" name="answer" class="dialog-item dialog-input dialog-answer mt-4" placeholder="回答を入力">
+
+						</div>
+					</div>
+					<button class="btn btn-add mt-4">問題を追加</button>
+					<button class="btn btn-comp mt-4">答え合わせ</button>
+					<button class="btn btn-reset mt-4">リセット</button>
+					<button class="btn btn-local-save mt-4">ブラウザに問題を保存する</button>
+					<button class="btn btn-local-delete mt-4">ブラウザの問題を削除する</button>
+				</div>
+			</div>
+			
+		</div>
+		
+	</div>
+
+	<!-- モーダル1（カテゴリー追加） -->
+	<div id="dialog1" class="dialog">
+		<div class="dialog-content shadow-lg">
+			<span class="close">&times;</span>
+			<div class="dialog-item">
+				<h2 class="dialog-title">新しいカテゴリーを追加</h2>
+			</div>
+			<input type="text" name="category-new" class="dialog-item dialog-input category-new" placeholder="カテゴリー名を入力">
+			<button class="dialog-item btn btn-category-add">追加</button>
+		</div>
+	</div>
+
+	<!-- モーダル2（カテゴリー編集） -->
+	<div id="dialog2" class="dialog">
+		<div class="dialog-content shadow-lg">
+			<span class="close">&times;</span>
+			<div class="dialog-item">
+				<h2 class="dialog-title">カテゴリー名の変更</h2>
+			</div>
+			<input type="text" name="category-update" class="dialog-item dialog-input category-update" placeholder="カテゴリー名を入力">
+			<button class="dialog-item btn btn-category-update">更新</button>
+			<button class="dialog-item btn btn-category-danger">削除</button>
+		</div>
+	</div>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+	<script src="script.js"></script>
+</body>
+</html>
