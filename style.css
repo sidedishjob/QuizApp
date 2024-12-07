@@ -1,4 +1,7 @@
 /* レイアウトCSS */
+html {
+	overflow-x: hidden;
+}
 body {
 	margin: 0;
 	padding: 0;
@@ -7,10 +10,16 @@ body {
 	justify-content: center;
 	align-items: center;
 	background-color: #fffefb;
+	overflow-x: hidden;
 }
 
 h1, h2, h3 {
 	color: #1d1c1c;
+}
+@media (max-width: 480px) {
+	h1 {
+		font-size: 1.5rem;
+	}
 }
 .container {
 	display: flex;
@@ -74,7 +83,7 @@ h1, h2, h3 {
 	display: inline-block;
 }
 
-.tooltip .tooltiptext {
+.tooltip .tooltip-text {
 	visibility: hidden;
 	width: 250px;
 	background-color: #8f8f8f;
@@ -84,8 +93,8 @@ h1, h2, h3 {
 	padding: 5px 0;
 	position: absolute;
 	z-index: 1;
-	bottom: 110%;
-	/* left: 50%; */
+	bottom: 125%;
+	right: 0;
 	margin-left: -100px;
 	font-size: 0.75rem;
 	letter-spacing: 0.025rem;
@@ -93,8 +102,14 @@ h1, h2, h3 {
 	transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
 	transform: translateY(10px); /* 少し下からふわっと表示 */
 }
+@media (max-width: 480px) {
+	.tooltip .tooltip-text {
+		width: 180px;
+		font-size: 0.5rem;
+	}
+}
 
-.tooltip:hover .tooltiptext {
+.tooltip:hover .tooltip-text {
 	visibility: visible;
 	opacity: 1;
 	transform: translateY(0); /* 元の位置に移動 */
@@ -108,14 +123,20 @@ h1, h2, h3 {
 	background-color: #dddddd;
 	border-radius: var(--radius);
 	align-items: center;
-	height: 2.3rem;
+	height: 2.6rem;
 	display: flex;
 	overflow-x: auto;
 	max-width: 400px;
+	/* width: 80%; */
 	white-space: nowrap;
 }
+@media (max-width: 480px) {
+	.category-list {
+		width: 130px;
+	}
+}
 .category-list::-webkit-scrollbar {
-	height: 2px;
+	height: 5px;
 }
 .category-list::-webkit-scrollbar-thumb {
 	background-color: #CCCCCC;
@@ -281,6 +302,20 @@ button, input, optgroup, select, textarea {
 }
 /* カテゴリーエリア */
 /* 問題エリア */
+.question-item {
+	display: flex;
+	flex-wrap: wrap;
+	max-width: 948px;
+	width: 100%;
+}
+@media (max-width: 480px) {
+	.question-item {
+		width: 200px;
+	}
+}
+.question-area {
+	margin: 0 0.25rem;
+}
 .question-title {
 	display: flex;
 	justify-content: space-between;
@@ -437,7 +472,7 @@ button, input, optgroup, select, textarea {
 	color: green; /* 正解は緑色 */
 }
 
-.incorecct-mark {
+.incorrect-mark {
 	color: red; /* 不正解は赤色 */
 }
 /* 採点結果 */

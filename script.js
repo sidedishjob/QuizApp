@@ -1,7 +1,8 @@
 /**
  * ※※TODO※※
  * 見た目ブラッシュアップ 
- * タブキー移動順修正 
+ * タブキー移動順修正
+ * 問題エリア横並び（flex）
  */
  
 $(document).ready(function() {
@@ -535,12 +536,12 @@ $(document).ready(function() {
 					// 正解の場合の処理（例: 正答マークを表示）
 					// $(answerInput).removeClass('incorrect').addClass('correct');
 					resultMark.text('◯  模範解答 : ' + correctValue);
-					resultMark.removeClass('incorecct-mark').addClass('correct-mark');
+					resultMark.removeClass('incorrect-mark').addClass('correct-mark');
 					correctCount++;
 				} else {
 					// 不正解の場合の処理（例: 不正答マークを表示）
 					resultMark.text('☓  模範解答 : ' + correctValue);
-					resultMark.removeClass('correct-mark').addClass('incorecct-mark');
+					resultMark.removeClass('correct-mark').addClass('incorrect-mark');
 				}
 			} else {
 				console.log('対応する answer が見つかりません: ' + correctId);
@@ -570,7 +571,7 @@ $(document).ready(function() {
 		//正答マークの削除
 		$.each(resultMarkList, function(index, resultMark) {
 			$(resultMark).removeClass('correct-mark');
-			$(resultMark).removeClass('incorecct-mark');
+			$(resultMark).removeClass('incorrect-mark');
 			$(resultMark).text('');
 		});
 
