@@ -2,12 +2,17 @@
  * ※※TODO※※
  * 見た目ブラッシュアップ 
  * タブキー移動順修正
- * 問題エリア横並び（flex）
+ * 回答保存機能（問題削除ボタンで特定の問題を消すと回答が残る、溜まる可能性あり）
+ * （ブラウザの問題削除で回答が全消しになる、間違えてブラウザの問題削除を押して直後ブラウザに保存を押しても
+ * 回答は消えたままになってしまう、模範解答がストレージになければ初期表示時に回答は自動で消されるので
+ * ブラウザの問題削除ボタンで回答を消す必要はないかも）
+ * 処理共通化（localStorage周り）
  */
  
 $(document).ready(function() {
 
 	const localStorageKey = 'quizAppData';
+	const localStorageKeyAnswer = 'quizAppAnswer'
 
 	// 答え合わせボタン非表示
 	$('.btn-comp').css('display', 'none');
@@ -26,22 +31,22 @@ $(document).ready(function() {
 			// カテゴリー数取得
 			var categoryCount = Object.keys(quizAppData);
 
-			categoryCount.forEach(function(categoryNum, index) {
+			categoryCount.forEach(function(categoryName, index) {
 				// 新しいIDの算出
 				var newTabId = 'section' + (index + 1);
 
 				// カテゴリータブ作成
-				$('.category-new').val(categoryNum);
-				createCategoryTab(categoryNum, newTabId);
+				$('.category-new').val(categoryName);
+				createCategoryTab(categoryName, newTabId);
 
 				// コンテンツエリア作成
-				createContentArea(categoryNum, newTabId);
+				createContentArea(categoryName, newTabId);
 				// ダイアログの入力欄初期化
 				$('.category-new').val('');
 
 				// 登録されている問題をセット
 				var questionContainer = $('#question-area-container-' + (index + 1));
-				var questionList = quizAppData[categoryNum];
+				var questionList = quizAppData[categoryName];
 				for (var questionNum in questionList) {
 					// 問題を作成
 					questionAdd(questionContainer);
@@ -56,6 +61,51 @@ $(document).ready(function() {
 				}
 			});
 		}
+
+		// localStorageに保存されていない回答がある場合削除
+		var quizAppAnswer = JSON.parse(localStorage.getItem(localStorageKeyAnswer));
+		// localStorageデータ存在確認
+		if (quizAppAnswer) {
+			Object.keys(quizAppAnswer).forEach(key => {
+				if (!quizAppData.hasOwnProperty(key)) {
+					delete quizAppAnswer[key];
+				}
+			});
+			// 保存しているデータが空になった場合、ストレージの情報削除（キーが残ってしまう対応策）（回答）
+			if (quizAppAnswer && Object.keys(quizAppAnswer).length === 0) {
+				localStorage.removeItem(localStorageKeyAnswer);
+				quizAppAnswer = null;
+			} else {
+				// localstorageに保存
+				localStorage.setItem(localStorageKeyAnswer, JSON.stringify(quizAppAnswer));
+			}
+		}
+
+		// localStorage保存されている回答を復元
+		// localStorageデータ存在確認
+		if (quizAppAnswer) {
+			// カテゴリー数取得
+			var categoryCount = Object.keys(quizAppAnswer);
+
+			categoryCount.forEach(function(categoryName, index) {
+				// sectionIdの算出
+				var sectionId = $("h3.category-title")
+					.filter(function() {
+						// カテゴリー名の値が一致する要素をフィルタリング
+						return $(this).text() === categoryName;
+					})
+					.closest(".content-item")
+					.attr("id");
+				var sectionNum = sectionId.match(/\d+/); // 数字部分を抽出
+
+				// 登録されている回答をセット
+				var answerList = quizAppAnswer[categoryName];
+				for (var answerNum in answerList) {
+					$('#answer-' + sectionNum + '-' + answerNum).val(answerList[answerNum]);
+				}
+			});
+		}
+
 	}
 
 	$(document).on('click', '.btn-category', function() {
@@ -299,8 +349,9 @@ $(document).ready(function() {
 		// localStorageのカテゴリー名更新
 		// localStorageからデータ取得
 		var quizAppData = JSON.parse(localStorage.getItem(localStorageKey));
+		var quizAppAnswer = JSON.parse(localStorage.getItem(localStorageKeyAnswer));
 
-		// localStorageデータ存在確認
+		// localStorageデータ存在確認（模範解答）
 		if (quizAppData && quizAppData[oldCategoryName]) {
 
 			// 変更対象のカテゴリー取得
@@ -314,6 +365,21 @@ $(document).ready(function() {
 
 			// 更新されたデータを再びlocalStorageに保存
 			localStorage.setItem(localStorageKey, JSON.stringify(quizAppData));
+		}
+		// localStorageデータ存在確認（回答）
+		if (quizAppAnswer && quizAppAnswer[oldCategoryName]) {
+
+			// 変更対象のカテゴリー取得
+			var categoryData = quizAppAnswer[oldCategoryName];
+
+			// 変更前のカテゴリーを削除
+			delete quizAppAnswer[oldCategoryName];
+
+			// 変更後のカテゴリー追加
+			quizAppAnswer[newCategoryName] = categoryData;
+
+			// 更新されたデータを再びlocalStorageに保存
+			localStorage.setItem(localStorageKeyAnswer, JSON.stringify(quizAppAnswer));
 		}
 
 		// モーダル非表示
@@ -334,7 +400,7 @@ $(document).ready(function() {
 			// コンテンツ削除
 			activeSection.remove();
 
-			// ローカルストレージから削除
+			// localStorageから削除
 			var deleteCategory = activeSection.find('.category-title').text();
 			deleteLocalStorage(deleteCategory);
 	
@@ -552,7 +618,7 @@ $(document).ready(function() {
 			section.find('.scoring-results-num').text(correctCount);
 			section.find('.scoring-results').text('/ ' + questionCount);
 			section.find('.results-rate').text(' 正答率 ');
-			section.find('.results-rate-per').text(Math.round(correctCount / questionCount  * 100) + '%');
+			section.find('.results-rate-per').text(Math.round(correctCount / questionCount * 100) + '%');
 		});
 	}
 
@@ -578,6 +644,20 @@ $(document).ready(function() {
 		// 入力された値削除
 		questionContainer.find('.dialog-answer').val('');
 
+		// カテゴリー名取得
+		var newCategory = questionContainer.siblings('.category-area').find('.category-title').text();
+		// localStorageからデータ取得
+		var quizAppAnswer = JSON.parse(localStorage.getItem(localStorageKeyAnswer));
+		if (quizAppAnswer) {
+			// localStorageに保存されている回答のカテゴリーを削除
+			delete quizAppAnswer[newCategory];
+			// localstorageに保存
+			localStorage.setItem(localStorageKeyAnswer, JSON.stringify(quizAppAnswer));
+		}
+		// 保存しているデータが空になった場合、ストレージの情報削除（キーが残ってしまう対応策）（回答）
+		if (quizAppAnswer && Object.keys(quizAppAnswer).length === 0) {
+			localStorage.removeItem(localStorageKeyAnswer);
+		}
 	});
 
 	// 問題保存ボタンのクリックイベント
@@ -597,7 +677,7 @@ $(document).ready(function() {
 			}
 		});
 
-		// ローカルストレージに保存
+		// localStorageに保存
 		if (!hasError) {
 			saveLocalStorage(questionContainer);
 		}
@@ -645,11 +725,7 @@ $(document).ready(function() {
 			newQuestionData[index+1] = $(correct).val();
 		});
 
-		// $.each(newQuestionData, function(index, value) {
-		// 	console.log(index + ':' + value);
-		// });
-	
-		// カテゴリー内のも範囲加藤を更新
+		// カテゴリー内の模範解答を更新
 		quizAppData[newCategory] = newQuestionData;
 
 		// localstorageに保存
@@ -660,45 +736,94 @@ $(document).ready(function() {
 	$(document).on('click', '.btn-local-delete', function() {
 		var deleteCategory = $(this).siblings('.category-area').find('.category-title').text();
 
-		// ローカルストレージから削除
+		// localStorageから削除
 		deleteLocalStorage(deleteCategory);
 
-		// // localStorageからデータ取得
-		// var quizAppData = JSON.parse(localStorage.getItem(localStorageKey));
-
-		// // localStorageデータ存在確認
-		// if (quizAppData && quizAppData[deleteCategory]) {
-		// 	// 対象のカテゴリーを削除
-		// 	delete quizAppData[deleteCategory];
-
-		// 	// 更新されたデータを再びlocalStorageに保存
-		// 	localStorage.setItem(localStorageKey, JSON.stringify(quizAppData));
-		// }
-
-		// // 保存しているデータが殻になった場合、ストレージの情報削除（キーが残ってしまう対応策）
-		// if (quizAppData && Object.keys(quizAppData).length === 0) {
-		// 	localStorage.removeItem(localStorageKey);
-		// }
 	});
 
 	// 対象のカテゴリーを削除する
 	function deleteLocalStorage(deleteCategory) {
 		// localStorageからデータ取得
 		var quizAppData = JSON.parse(localStorage.getItem(localStorageKey));
+		var quizAppAnswer = JSON.parse(localStorage.getItem(localStorageKeyAnswer));
 
-		// localStorageデータ存在確認
+		// localStorageデータ存在確認（模範解答）
 		if (quizAppData && quizAppData[deleteCategory]) {
 			// 対象のカテゴリーを削除
 			delete quizAppData[deleteCategory];
-
 			// 更新されたデータを再びlocalStorageに保存
 			localStorage.setItem(localStorageKey, JSON.stringify(quizAppData));
 		}
+		// localStorageデータ存在確認（回答）
+		if (quizAppAnswer && quizAppAnswer[deleteCategory]) {
+			// 対象のカテゴリーを削除
+			delete quizAppAnswer[deleteCategory];
+			// 更新されたデータを再びlocalStorageに保存
+			localStorage.setItem(localStorageKeyAnswer, JSON.stringify(quizAppAnswer));
+		}
 
-		// 保存しているデータが殻になった場合、ストレージの情報削除（キーが残ってしまう対応策）
+		// 保存しているデータが空になった場合、ストレージの情報削除（キーが残ってしまう対応策）（模範解答）
 		if (quizAppData && Object.keys(quizAppData).length === 0) {
 			localStorage.removeItem(localStorageKey);
 		}
+		// 保存しているデータが空になった場合、ストレージの情報削除（キーが残ってしまう対応策）（回答）
+		if (quizAppAnswer && Object.keys(quizAppAnswer).length === 0) {
+			localStorage.removeItem(localStorageKeyAnswer);
+		}
 	}
+
+	// 入力された回答をlocalStorageに保存
+	$(document).on('blur', '.dialog-answer', function() {
+		const value = $(this).val();
+		var deleteFlg = false;
+		if (value == '' || !value.match(/[^\s\t]/)) {
+			// return false;
+			deleteFlg = true;
+		}
+		var questionContainer = $(this).closest('[id^="question-area-container"]');
+		// カテゴリー名取得
+		var categoryName = questionContainer.siblings('.category-area').find('.category-title').text();
+
+		// 保存する回答の問題番号
+		var answerNo = $(this).attr('id').match(/-(\d+)$/)[1];
+
+		// localStorageからデータ取得
+		var quizAppAnswer = JSON.parse(localStorage.getItem(localStorageKeyAnswer));
+
+		if (!quizAppAnswer && deleteFlg) {
+			return false;
+		}
+
+		// localStorageデータ存在確認
+		if (!quizAppAnswer) {
+			quizAppAnswer = {};
+		}
+
+		// localStorage保存対象のカテゴリー存在確認
+		if (!quizAppAnswer[categoryName]) {
+			quizAppAnswer[categoryName] = {}
+		}
+	
+		// カテゴリー内の模範解答を更新
+		if (deleteFlg) {
+			delete quizAppAnswer[categoryName][answerNo];
+		} else {
+			quizAppAnswer[categoryName][answerNo] = value;
+		}
+
+		// 対象カテゴリーが殻になった場合、カテゴリー削除
+		if (quizAppAnswer[categoryName] && Object.keys(quizAppAnswer[categoryName]).length === 0) {
+			delete quizAppAnswer[categoryName];
+		}
+
+		// 保存しているデータが空になった場合、ストレージの情報削除（キーが残ってしまう対応策）（回答）
+		if (quizAppAnswer && Object.keys(quizAppAnswer).length === 0) {
+			localStorage.removeItem(localStorageKeyAnswer);
+		} else {
+			// localstorageに保存
+			localStorage.setItem(localStorageKeyAnswer, JSON.stringify(quizAppAnswer));
+		}
+		
+	});
 
 });
